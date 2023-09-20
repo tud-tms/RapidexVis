@@ -1,0 +1,10 @@
+File Type,Location,Description
+Centroid,sustainability/networks/Auckland/models/2021/.model/centroid.csv,Path to CSV file with information about centroids
+Network,sustainability/networks/Auckland/models/2021/.model/net.csv,Path to CSV file with information about the network structure
+OD TT,,Path to CSV file with information about OD Table
+OD Demands,sustainability/networks/Auckland/models/2021/.model/zone_TD.csv,Path to CSV file with information about OD Demands
+Edges,,Path to CSV file with information about link travel times/flows
+Routes,,Path to CSV file with information about route Ids and their nodes
+Route TT,,Path to CSV file with information about routes and their TT
+LaneKM,,Path to CSV file with information about the lane kms for each centroid
+CUSTOM,,Path to CSV file with information about the custom proportions for each centroid

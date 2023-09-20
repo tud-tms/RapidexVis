@@ -1,0 +1,14 @@
+Variable,Value,Description
+General Params,,
+Use GPU,FALSE,Do you want to use the GPU for Dijkstra (TRUE or FALSE) (Currently not avaliable)
+Algorithm,FW,Options: MSA | FW
+Max Iterations for Algorithm,1000,Maximum iterations the algorithm will go to
+Relative Gap,0.005,Termination value for algorithm: between 0-1
+Network Initialization,,
+File Names File,sustainability/networks/Buenos_Aires/models/2021/.model/fileNames.csv,Path to CSV file with the location of all the necessary files
+Capacity Factor (A),0.6-0.6-0.1,Min-Max-Step
+Capacity Factor (F),0.7-0.7-0.1,Min-Max-Step
+FFTT Factor,1-1-0.2,Min-Max-Step
+Demand Factor,265000-795000-5300,Min-Max-Step
+Result Collection,,
+Save Folder,sustainability/networks/Buenos_Aires/models/2021/assignments,Path to the folder where you want to save the results to
