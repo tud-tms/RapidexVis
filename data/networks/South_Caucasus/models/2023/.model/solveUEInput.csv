@@ -9,6 +9,6 @@ File Names File,models/2023-11-01_05-08-11/.model/fileNames.csv,Path to CSV file
 Capacity Factor (A),0.6-0.6-0.1,Min-Max-Step
 Capacity Factor (F),0.7-0.7-0.1,Min-Max-Step
 FFTT Factor,1-1-0.2,Min-Max-Step
-Demand Factor,242781-242785-1000,Min-Max-Step
+Demand Factor,223739-223740-100,Min-Max-Step
 Result Collection,,
 Save Folder,models/2023-11-01_05-08-11/assignments,Path to the folder where you want to save the results to
