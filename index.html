@@ -380,8 +380,8 @@ body {
                 <button onclick="selectVisualization('congestion')">
                     <img id="congestionImg" class="button-img highlighted" src="src/images/congestion.png" alt="Congestion">
                     <div class="popup" id="congestionPopup">
-                        <h1 class="popup-heading">Congestion</h1>
-                        <p class="popup-text">The map presented illustrates network congestion through a color gradient that transitions linearly from green to orange to red, with each link color-coded to represent congestion levels.<br><br> These links are interactive; clicking on a link will display information regarding flow, capacity, travel time, and the free flow travel time.</p>
+                        <h1 class="popup-heading">Stau</h1>
+                        <p class="popup-text">Die Karte veranschaulicht die Überlastung des Netzes anhand eines Farbverlaufs, der linear von grün über orange nach rot verläuft, wobei jede Verbindung farblich gekennzeichnet ist, um den Grad der Überlastung darzustellen.<br><br> Diese Links sind interaktiv; wenn Sie auf einen Link klicken, werden Informationen zum Verkehrsfluss, zur Kapazität, zur Reisezeit und zur Reisezeit im freien Verkehr angezeigt.</p>
                         <span class="close-btn" onclick="closePopup(event, 'congestionPopup')">&times;</span>
                     </div>
                 </button>
@@ -390,8 +390,8 @@ body {
                 <button onclick="selectVisualization('emission')">
                     <img id="emissionImg" class="button-img normal" src="src/images/emissions.png" alt="Zonal Emissions">
                     <div class="popup" id="emissionPopup">
-                        <h1 class="popup-heading">Emissions</h1>
-                        <p class="popup-text">The map displayed categorizes zonal emissions using a linear color gradient ranging from green through orange to red. <br><br> Zones on the map are interactive; selecting a zone will prompt a popup to appear, providing information on zonal emissions and its area.</p>
+                        <h1 class="popup-heading">Emissionen</h1>
+                        <p class="popup-text">Die angezeigte Karte kategorisiert die zonalen Emissionen anhand eines linearen Farbverlaufs, der von Grün über Orange bis Rot reicht. <br><br> Die Zonen auf der Karte sind interaktiv. Wenn Sie eine Zone auswählen, erscheint ein Pop-up-Fenster mit Informationen über die zonalen Emissionen und ihre Fläche.</p>
                         <span class="close-btn" onclick="closePopup(event, 'emissionPopup')">&times;</span>
                     </div>
                 </button>
@@ -400,19 +400,19 @@ body {
                 <button onclick="selectVisualization('equity')">
                     <img id="equityImg" class="button-img normal" src="src/images/equity.png" alt="Zonal Equity">
                     <div class="popup" id="equityPopup">
-                        <h1 class="popup-heading">Equity</h1>
-                        <p class="popup-text">The map showcases zonal equity with a linear color progression from red to orange and finally to green. <br><br> Zones on the map are interactive; selecting a zone will prompt a popup to appear, providing information on zonal equity and its area.</p>
+                        <h1 class="popup-heading">Gerechtigkeit</h1>
+                        <p class="popup-text">Die Karte zeigt die zonale Gerechtigkeit mit einem linearen Farbverlauf von Rot zu Orange und schließlich zu Grün. <br><br> Die Zonen auf der Karte sind interaktiv. Wenn Sie eine Zone auswählen, erscheint ein Popup-Fenster, das Informationen über die zonale Gerechtigkeit und ihr Gebiet enthält.</p>
                         <span class="close-btn" onclick="closePopup(event, 'equityPopup')">&times;</span>
                     </div>
                 </button>
             </div>
         </div>
         <div class="roads" id="road-selection">
-            <label><strong>Select Road(s) to close</strong></label>
+            <label><strong>Zu schließende Straße(n) auswählen</strong></label>
             <div class="road-container-row">
             <div class="road-container">
                 <img src="src/images/bridge.png" alt="Carola Bridge" class="road-img" onclick="toggleSelection(this, 'road1')">
-                <span class="road-name">Carola<br> Bridge</span>
+                <span class="road-name">Carolabrücke</span>
             </div>
             <div class="road-container">
                 <img src="src/images/road.png" alt="Königsbrücker Straße" class="road-img" onclick="toggleSelection(this, 'road2')">
