@@ -1,9 +1,0 @@
-Initial Soltuion,% Of Initial Solutions,Description
-Gradient,TRUE,Evenly test the total demand over it’s range
-RAND,0,
-TFM,25,
-FDM,25,
-TDM,25,
-CGM,0,
-SCC,0,
-CUST,25,
