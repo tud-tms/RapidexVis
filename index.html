@@ -391,7 +391,7 @@ body {
                     <img id="emissionImg" class="button-img normal" src="src/images/emissions.png" alt="Zonal Emissions">
                     <div class="popup" id="emissionPopup">
                         <h1 class="popup-heading">Emissionen</h1>
-                        <p class="popup-text">Die angezeigte Karte kategorisiert die zonalen Emissionen anhand eines linearen Farbverlaufs, der von Grün über Orange bis Rot reicht. <br><br> Die Zonen auf der Karte sind interaktiv. Wenn Sie eine Zone auswählen, erscheint ein Pop-up-Fenster mit Informationen über die zonalen Emissionen und ihre Fläche.</p>
+                        <p class="popup-text">Die angezeigte Karte kategorisiert die zonalen Emissionen anhand eines linearen Farbverlaufs, der von grün über orange bis rot reicht. <br><br> Die Zonen auf der Karte sind interaktiv. Wenn Sie eine Zone auswählen, erscheint ein Pop-up-Fenster mit Informationen über die zonalen Emissionen und ihre Fläche.</p>
                         <span class="close-btn" onclick="closePopup(event, 'emissionPopup')">&times;</span>
                     </div>
                 </button>
@@ -401,7 +401,7 @@ body {
                     <img id="equityImg" class="button-img normal" src="src/images/equity.png" alt="Zonal Equity">
                     <div class="popup" id="equityPopup">
                         <h1 class="popup-heading">Gerechtigkeit</h1>
-                        <p class="popup-text">Die Karte zeigt die zonale Gerechtigkeit mit einem linearen Farbverlauf von Rot zu Orange und schließlich zu Grün. <br><br> Die Zonen auf der Karte sind interaktiv. Wenn Sie eine Zone auswählen, erscheint ein Popup-Fenster, das Informationen über die zonale Gerechtigkeit und ihr Gebiet enthält.</p>
+                        <p class="popup-text">Die Karte zeigt die zonale Gerechtigkeit für alle Verkehrsteilnehmer mit einem linearen Farbverlauf von rot zu orange und schließlich zu grün. <br><br> Die Zonen auf der Karte sind interaktiv. Wenn Sie eine Zone auswählen, erscheint ein Popup-Fenster, das Informationen über die zonale Gerechtigkeit und ihr Gebiet enthält.</p>
                         <span class="close-btn" onclick="closePopup(event, 'equityPopup')">&times;</span>
                     </div>
                 </button>
@@ -441,7 +441,7 @@ body {
     <script src="https://cdn.jsdelivr.net/npm/@turf/turf"></script>
     <script src='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-draw/v1.4.3/mapbox-gl-draw.js'></script>
 <script>
-            let edgesLayerId = null;
+        let edgesLayerId = null;
         let gridPolygonLayerId = null;
         let basepath = '/src/data/Dresden/';
         let folder = null;
@@ -454,26 +454,21 @@ body {
         let popupTimer;
 
         function selectVisualization(visualization) {
-            // Close any previously opened popup
             closeCurrentPopup();
 
-            // Reset all to normal
             document.querySelectorAll('.button-img').forEach(img => {
                 img.classList.remove('highlighted');
                 img.classList.add('normal');
             });
 
-            // Highlight selected
             const imgId = visualization + 'Img';
             const popupId = visualization + 'Popup';
             const selectedImg = document.getElementById(imgId);
             if (selectedImg) {
                 selectedImg.classList.remove('normal');
                 selectedImg.classList.add('highlighted');
-                // Show the popup
                 const popup = document.getElementById(popupId);
                 popup.style.display = 'block';
-                // Set a timer to automatically close the popup after 10 seconds
                 popupTimer = setTimeout(() => {
                     popup.style.display = 'none';
                 }, 30000);
@@ -481,24 +476,20 @@ body {
         }
 
         function closePopup(event, popupId) {
-            // Prevent the click event from propagating to the parent elements
             event.stopPropagation();
 
             const popup = document.getElementById(popupId);
             popup.style.display = 'none';
 
-            // Clear the timer when the popup is manually closed
             clearTimeout(popupTimer);
         }
 
 
         function closeCurrentPopup() {
-            // Close the currently displayed popup if any
             const openPopup = document.querySelector('.popup[style*="display: block"]');
             if (openPopup) {
                 openPopup.style.display = 'none';
             }
-            // Clear any existing timer
             clearTimeout(popupTimer);
         }
 
@@ -774,14 +765,13 @@ body {
     map.addControl(new RotateControl(), 'bottom-right');
 
     map.on('load', function() {
-                // Add 3D building layer when zoom level is greater than 15
                 map.addLayer({
                     'id': '3d-buildings',
                     'source': 'composite',
                     'source-layer': 'building',
                     'filter': ['==', 'extrude', 'true'],
                     'type': 'fill-extrusion',
-                    'minzoom': 15,  // Specify the minimum zoom level for 3D buildings
+                    'minzoom': 15,
                     'paint': {
                         'fill-extrusion-color': '#aaa',
                         'fill-extrusion-height': ['get', 'height'],
@@ -907,15 +897,18 @@ body {
                 },
             });
         }
-        // Add click event listener to the zones-layer
+
         map.on('click', 'zones-layer', function (e) {
             if (e.features.length > 0) {
                 const feature = e.features[0];
-                const zoneId = feature.properties.fishnetid || feature.properties.fishnetID; // Assuming the zone ID is stored in the property 'zone_id'
-                const value = toFixedSafe(feature.properties.value/1000000, 3); // Assuming the value is stored in the property 'value'
+                const zoneId = feature.properties.fishnetid || feature.properties.fishnetID;
+                if (feature.properties.zoneout === 'emissions') {
+                    const value = toFixedSafe(feature.properties.value/1000, 3);
+                }
+                else if (feature.properties.zoneout === 'equity') {
+                    const value = toFixedSafe(feature.properties.value, 3);                }
 
-                // Calculate the area using the geometry (requires a function to calculate the area)
-                const area = toFixedSafe(calculateArea(feature.geometry),2); // This is a placeholder function
+                const area = feature.properties.area;
                 if (currentPopup) {
                     currentPopup.remove();
                 }
@@ -926,7 +919,7 @@ body {
                         <p><strong>Zone ID:</strong>&nbsp;&nbsp; ${zoneId}</p>
                         <p><strong>Area:</strong>&nbsp;&nbsp; ${area} km<sup>2</sup></p>
                         <p><strong>Value:</strong> <span class="co2">&nbsp;&nbsp;${value} Tons CO<sub>2</sub>/km<sup>2</sup> </span></p>
-                        <p style="display: none;"><strong>Equity:</strong>&nbsp;&nbsp; ${feature.properties.equity}</p>
+                        <p style="display: none;"><strong>Equity:</strong>&nbsp;&nbsp; ${value}</p>
                     </div>
                 `;
 
@@ -1010,17 +1003,15 @@ body {
                 },
             });
         }
-        // Function to check if reverse edge exists and get its data
         function getReverseEdgeData(efrom, eto, e) {
             for (let feature of e.features) {
                 const edgeFrom = feature.properties.from;
                 const edgeTo = feature.properties.to;
-                // Check if this edge is the reverse of the one we're looking for
                 if (edgeFrom === eto && edgeTo === efrom) {
-                    return feature.properties; // Return the reverse edge data
+                    return feature.properties;
                 }
             }
-            return null; // No reverse edge found
+            return null;
         }
         function createPopupContent(edgeData) {
             const from = edgeData.from;
@@ -1058,27 +1049,21 @@ body {
                     currentPopup.remove();
                 }
 
-                // Check if the reverse edge exists
                 let reverseEdgeData = getReverseEdgeData(efrom, eto, e);
                 const reverseEdgeExists = reverseEdgeData !== null;
                 let isReverseEdgeShown = false;
 
                 let popupContent = createPopupContent(edgeData);
 
-                // Add "Other Direction" button if reverse edge exists
                 if (reverseEdgeExists) {
                     popupContent += `<button id="other-direction-btn">Other Direction</button>`;
                 }
-                
-                // <p><strong>From and To Nodes:</strong> ${edgeData.from},\n${edgeData.to}</p>
                 currentPopup = new mapboxgl.Popup()
                     .setLngLat(e.lngLat)
                     .setHTML(popupContent)
                     .addTo(map);
-                // Add click event listener for the "Other Direction" button
                 if (reverseEdgeExists) {
                     document.getElementById('other-direction-btn').addEventListener('click', function() {
-                        // Logic to toggle between original and reverse edge data
                         if (!isReverseEdgeShown) {
                             updatePopupContent(reverseEdgeData);
                             isReverseEdgeShown = true;
@@ -1116,10 +1101,8 @@ body {
             netdata = d3.csvParse(nettext);
 
             data.forEach((entry, index) => {
-                // get netentry based on the from and to nodes matching entry from and to nodes
                 const netentry = netdata.find(netentry => netentry.from === entry.from && netentry.to === entry.to);
-                // const netentry = netdata[index];
-                const TT = entry.TT || entry['EstimatedTT']; // Handle both cases
+                const TT = entry.TT || entry['EstimatedTT'];
                 if (entry && netentry && TT !== null && netentry['Free Flow Time (min)'] !== null) {
                     entry.value = netentry['Free Flow Time (min)'] !== 0 ? (TT - netentry['Free Flow Time (min)']) / netentry['Free Flow Time (min)'] : 0;
                     entry.fft = netentry['Free Flow Time (min)'];
@@ -1134,8 +1117,8 @@ body {
                 const entry = data[index];
                 if (entry && entry.value !== null) {
                     feature.properties.value = entry.value;
-                    feature.properties.volume = entry.Volume || entry.volume; // Handle both cases
-                    feature.properties.TT = entry.TT || entry['EstimatedTT']; // Handle both cases
+                    feature.properties.volume = entry.Volume || entry.volume;
+                    feature.properties.TT = entry.TT || entry['EstimatedTT'];
                     feature.properties.fft = entry.fft;
                 } else {
                     feature.properties.value = 0;
@@ -1146,34 +1129,41 @@ body {
             });
             return geojsonData;
         } else if (dataType === 'emissions') {
-            const zoneinfo = await fetch(`${basepath}/${folderPath}/${foldername}/zone_emissions.csv`);
+            const zoneinfo = await fetch(`${basepath}/${folderPath}/${foldername}/zones_outputs.csv`);
             const text = await zoneinfo.text();
             const data = d3.csvParse(text);
             const geojsonResponse = await fetch(`${basepath}/${folderPath}/aggrid_polygon.geojson`);
             const geojsonData = await geojsonResponse.json();
             geojsonData.features.forEach((feature, index) => {
                 const entry = data[index];
-                if (entry && entry['CO2psqkm'] !== null) {
-                    feature.properties.value = parseFloat(entry['CO2psqkm']) > 0 ? parseFloat(entry['CO2psqkm']) : 0;
+                if (entry && entry['carbon'] !== null) {
+                    const carbon = parseFloat(entry['carbon']) > 0 ? parseFloat(entry['carbon']) : 0;
+                    feature.properties.value = carbon / area;
                 } else {
                     feature.properties.value = 0;
                 }
+                const area = toFixedSafe(calculateArea(feature.geometry),2);
+                feature.properties.area = area;
+                feature.properties.zoneout = 'emissions';
             });
             return geojsonData;
         }
         else {
-            const zoneinfo = await fetch(`${basepath}/${folderPath}/${foldername}/zone_equity.csv`);
+            const zoneinfo = await fetch(`${basepath}/${folderPath}/${foldername}/zones_outputs.csv`);
             const text = await zoneinfo.text();
             const data = d3.csvParse(text);
             const geojsonResponse = await fetch(`${basepath}/${folderPath}/aggrid_polygon.geojson`);
             const geojsonData = await geojsonResponse.json();
             geojsonData.features.forEach((feature, index) => {
                 const entry = data[index];
-                if (entry && entry['Equity'] !== null) {
-                    feature.properties.value = parseFloat(entry['Equity']) > 0 ? parseFloat(entry['Equity']) : 0;
+                if (entry && entry['CI'] !== null) {
+                    feature.properties.value = parseFloat(entry['CI']) > 0 ? parseFloat(entry['CI']) : 0;
                 } else {
                     feature.properties.value = 0;
                 }
+                const area = toFixedSafe(calculateArea(feature.geometry),2);
+                feature.properties.area = area;
+                feature.properties.zoneout = 'equity';
             });
             return geojsonData;
         }
