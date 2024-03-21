@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>COSMO Rapidex-Vis</title>
+    <!-- Include Mapbox CSS -->
+    <link href='https://api.mapbox.com/mapbox-gl-js/v3.0.0-rc.1/mapbox-gl.css' rel='stylesheet' />
+    <link href='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-draw/v1.4.3/mapbox-gl-draw.css' rel='stylesheet' />
+    <!-- Include your custom CSS styles here -->
+    <style>
+        /* ... (existing CSS styles) ... */
+    </style>
+    <link rel="icon" href="src/images/favicon.ico" type="image/x-icon">
+    <link rel="shortcut icon" href="src/images/favicon.ico" type="image/x-icon">
+</head>
+<body>
+    <div id="map" style="width: 99vw; height: 98.5vh;"></div>
+    <div class="map-container">
+        <div class="radiobox-container" id="checkbox-dataDropdown">
+            <!-- ... (existing button containers) ... -->
+        </div>
+        <div class="roads" id="road-selection">
+            <!-- ... (existing road selection containers) ... -->
+        </div>
+    </div>
+    <div id="folderSliderContainer" style="position: fixed; bottom: 10px; left: 1vw; z-index: 1000; width: 98vw;">
+        <div id="folderName"></div>
+        <input type="range" min="0" max="0" value="0" class="slider" id="folderSlider">
+    </div>
+
+    <script src='https://api.mapbox.com/mapbox-gl-js/v3.0.0-rc.1/mapbox-gl.js'></script>
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@turf/turf"></script>
+    <script src='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-draw/v1.4.3/mapbox-gl-draw.js'></script>
+    <script>
+        let edgesLayerId = null;
+        let gridPolygonLayerId = null;
+        let basepath = '/src/Dresden/';
+        let folder = null;
+        let dataType = null;
+        let directories = null;
+        let bounds = null;
+        let breaks = null;
+        let currentPopup = null;
+
+        let popupTimer;
+
+        function selectVisualization(visualization) {
+            closeCurrentPopup();
+
+            document.querySelectorAll('.button-img').forEach(img => {
+                img.classList.remove('highlighted');
+                img.classList.add('normal');
+            });
+
+            const imgId = visualization + 'Img';
+            const popupId = visualization + 'Popup';
+            const selectedImg = document.getElementById(imgId);
+            if (selectedImg) {
+                selectedImg.classList.remove('normal');
+                selectedImg.classList.add('highlighted');
+                const popup = document.getElementById(popupId);
+                popup.style.display = 'block';
+                popupTimer = setTimeout(() => {
+                    popup.style.display = 'none';
+                }, 30000);
+            }
+
+            dataType = visualization;
+            updateVisualization();
+        }
+
+        // ... (existing functions) ...
+
+        const selectedRoads = {};
+
+        function toggleSelection(image, roadId) {
+            image.classList.toggle('selected');
+            const roadNameSpan = image.nextElementSibling;
+            roadNameSpan.classList.toggle('selected-text');
+
+            if (selectedRoads[roadId]) {
+                delete selectedRoads[roadId];
+            } else {
+                selectedRoads[roadId] = true;
+            }
+
+            updateFolder();
+            updateVisualization();
+        }
+
+        function updateFolder() {
+            switch (Object.keys(selectedRoads).length) {
+                case 1:
+                    folder = Object.keys(selectedRoads)[0];
+                    break;
+                case 2:
+                    folder = Object.keys(selectedRoads).sort().join('_');
+                    break;
+                case 3:
+                    folder = Object.keys(selectedRoads).sort().join('_');
+                    break;
+                case 4:
+                    folder = Object.keys(selectedRoads).sort().join('_');
+                    break;
+                default:
+                    folder = 'base';
+                    break;
+            }
+        }
+
+        function readdirectories() {
+            fetch(`${basepath}/${folder}`)
+                .then(response => response.json())
+                .then(data => {
+                    directories = data;
+                    const slider = document.getElementById('folderSlider');
+                    slider.max = directories.length - 1;
+                    slider.value = directories.length - 1;
+                    document.getElementById('folderName').textContent = directories[directories.length - 1].name;
+                    updateVisPathAndVisualize(directories.length - 1);
+                })
+                .catch(error => console.error('Error fetching directories:', error));
+        }
+
+        function updateVisPathAndVisualize(index) {
+            const sfolder = directories[index].name;
+            drawGeoJSONLayers(folder);
+            colorCode(dataType, folder, sfolder);
+        }
+
+        function updateVisualization() {
+            readdirectories();
+        }
+
+        // ... (existing functions) ...
+
+        // Initialize Mapbox
+        mapboxgl.accessToken = 'pk.eyJ1Ijoic3VyZW5kcmEyOSIsImEiOiJjbHR3eGZ1bXIwMGFnMmpzMWVmZzMzc2YzIn0.zJApAGxS7gq9GUM4crBwWA';
+        const map = new mapboxgl.Map({
+            container: 'map',
+            style: 'mapbox://styles/mapbox/standard',
+            center: [13.728688, 51.030713],
+            zoom: 17,
+            pitch: 60,
+            bearing: 37.6,
+            projection: 'globe'
+        });
+
+        map.addControl(new mapboxgl.NavigationControl(), 'bottom-right');
+        // ... (existing map control additions) ...
+
+        map.on('load', function() {
+            map.addLayer({
+                'id': '3d-buildings',
+                'source': 'composite',
+                'source-layer': 'building',
+                'filter': ['==', 'extrude', 'true'],
+                'type': 'fill-extrusion',
+                'minzoom': 15,
+                'paint': {
+                    'fill-extrusion-color': '#aaa',
+                    'fill-extrusion-height': ['get', 'height'],
+                    'fill-extrusion-base': ['get', 'min_height'],
+                    'fill-extrusion-opacity': 0.6,
+                },
+            });
+        });
+
+        function updateSliderBackgroundandOffset(slider, bubble) {
+            const position = slider.value / slider.max;
+            const offset = (slider.offsetWidth - bubble.offsetWidth) * position;
+            bubble.style.left = `${offset}px`;
+            const currentValuePercentage = position * 100;
+            slider.style.background = `linear-gradient(to right, #4CAF50 ${currentValuePercentage}%, #ccc ${currentValuePercentage}%)`;
+        }
+
+        let slider = document.getElementById('folderSlider');
+        let bubble = document.getElementById('folderName');
+
+        slider.addEventListener('input', function() {
+            let currentIndex = Number(slider.value);
+            bubble.textContent = directories[currentIndex].name;
+            updateVisPathAndVisualize(currentIndex);
+        });
+
+        slider.oninput = function() {
+            updateSliderBackgroundandOffset(slider, bubble);
+        }
+
+        slider.onmousedown = function() {
+            bubble.textContent = directories[Number(slider.value)].name;
+            bubble.style.display = 'block';
+        }
+
+        slider.onmouseup = function() {
+            bubble.style.display = 'none';
+        }
+
+        // ... (existing functions) ...
+    </script>
+</body>
+</html>

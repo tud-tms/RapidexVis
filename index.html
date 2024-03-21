@@ -443,8 +443,8 @@ body {
 <script>
         let edgesLayerId = null;
         let gridPolygonLayerId = null;
-        let basepath = '/src/data/Dresden/';
-        let folder = null;
+        let basepath = 'src/Dresden';
+        let folder = 'base';
         let dataType = null;
         let directories = null;
         let bounds = null;
@@ -452,7 +452,7 @@ body {
         let currentPopup = null;
 
         let popupTimer;
-
+        updateVisualization();
         function selectVisualization(visualization) {
             closeCurrentPopup();
 
@@ -473,6 +473,9 @@ body {
                     popup.style.display = 'none';
                 }, 30000);
             }
+
+            dataType = visualization;
+            updateVisualization();
         }
 
         function closePopup(event, popupId) {
@@ -496,49 +499,69 @@ body {
         const selectedRoads = {};
 
         function toggleSelection(image, roadId) {
-            // Toggle selection
             image.classList.toggle('selected');
-
             const roadNameSpan = image.nextElementSibling;
             roadNameSpan.classList.toggle('selected-text');
-            
-            // Update selected roads
+
             if (selectedRoads[roadId]) {
                 delete selectedRoads[roadId];
             } else {
                 selectedRoads[roadId] = true;
             }
+
+            updateFolder();
+            updateVisualization();
         }
 
+        function updateFolder() {
+            switch (Object.keys(selectedRoads).length) {
+                case 1:
+                    folder = Object.keys(selectedRoads)[0];
+                    break;
+                case 2:
+                    folder = Object.keys(selectedRoads).sort().join('_');
+                    break;
+                case 3:
+                    folder = Object.keys(selectedRoads).sort().join('_');
+                    break;
+                case 4:
+                    folder = Object.keys(selectedRoads).sort().join('_');
+                    break;
+                default:
+                    folder = 'base';
+                    break;
+            }
+        }
 
+        function readdirectories() {
+            fetch(`${basepath}/${folder}`)
+                .then(response => response.json())
+                .then(data => {
+                    directories = data;
+                    const slider = document.getElementById('folderSlider');
+                    slider.max = directories.length - 1;
+                    slider.value = directories.length - 1;
+                    document.getElementById('folderName').textContent = directories[directories.length - 1].name;
+                    updateVisPathAndVisualize(directories.length - 1);
+                })
+                .catch(error => console.error('Error fetching directories:', error));
+        }
 
-    // Define a counter variable to ensure unique layer IDs
-    let layerCounter = 0;
-    
-    switch (Object.keys(selectedRoads).length) {
-        case 1:
-            folder = Object.keys(selectedRoads)[0];
-            break;
-        case 2:
-            folder = Object.keys(selectedRoads).sort().join('_');
-            break;
-        case 3:
-            folder = Object.keys(selectedRoads).sort().join('_');
-            break;
-        case 4:
-            folder = Object.keys(selectedRoads).sort().join('_');
-            break;
-        default:
-            folder = 'all-roads';
-            break;
-    }
+        function updateVisPathAndVisualize(index) {
+            const sfolder = directories[index].name;
+            drawGeoJSONLayers(folder);
+            colorCode(dataType, folder, sfolder);
+        }
 
-    function updateVisPathAndVisualize(index) {
-        sfolder = directories[index].name;
-        colorCode(dataType, folder, sfolder);
-        drawGeoJSONLayers(folder);
-    }
+        function updateVisualization() {
+            readdirectories();
+            console.log(directories)
+            updateVisPathAndVisualize(0);
+        }
+
     dataType = document.querySelector('.highlighted').alt;
+
+    readdirectories();
 
     function drawGeoJSONLayers(folderPath) {
         // Remove existing layers
@@ -781,14 +804,14 @@ body {
                 });
             });
 
+        function updateSliderBackgroundandOffset(slider, bubble) {
+            const position = slider.value / slider.max;
+            const offset = (slider.offsetWidth - bubble.offsetWidth) * position;
+            bubble.style.left = `${offset}px`;
+            const currentValuePercentage = position * 100;
+            slider.style.background = `linear-gradient(to right, #4CAF50 ${currentValuePercentage}%, #ccc ${currentValuePercentage}%)`;
+        }
 
-    function updateSliderBackgroundandOffset(slider, bubble) {
-        const position = slider.value / slider.max;
-        const offset = (slider.offsetWidth-bubble.offsetWidth) * position;
-        bubble.style.left = `${offset}px`;
-        const currentValuePercentage = position * 100;
-        slider.style.background = `linear-gradient(to right, #4CAF50 ${currentValuePercentage}%, #ccc ${currentValuePercentage}%)`;
-    }
         let slider = document.getElementById('folderSlider');
         let bubble = document.getElementById('folderName');
 
@@ -797,6 +820,7 @@ body {
             bubble.textContent = directories[currentIndex].name;
             updateVisPathAndVisualize(currentIndex);
         });
+
         slider.oninput = function() {
             updateSliderBackgroundandOffset(slider, bubble);
         }
@@ -805,10 +829,11 @@ body {
             bubble.textContent = directories[Number(slider.value)].name;
             bubble.style.display = 'block';
         }
-        
+
         slider.onmouseup = function() {
             bubble.style.display = 'none';
         }
+
     async function colorCode(dataType, folderPath, foldername) {
         switch (dataType) {
             case 'congestion':
