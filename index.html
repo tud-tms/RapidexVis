@@ -33,14 +33,16 @@ body {
 }
 
 .radiobox-container{
+    position: fixed;
     display: flex;
     gap: 40px;
     border-radius: 8px;
     padding: 5px;
     pointer-events: auto;
-      border-radius: 8px;
-  border-color: 2px solid #4CAF50;
-  background-color: rgba(255, 255, 255, 0.5);
+    border-radius: 8px;
+    border-color: 2px solid #4CAF50;
+    bottom: 80px !important;
+    background-color: rgba(255, 255, 255, 0.5);
 }
 .roads {
   position: fixed;
@@ -50,7 +52,7 @@ body {
   pointer-events: auto;
   display: flex;
   right: 80px;
-  bottom: 50px;
+  bottom: 80px;
   border-radius: 8px;
   border-color: 2px solid #4CAF50;
   background-color: rgba(255, 255, 255, 0.5);
@@ -98,7 +100,6 @@ body {
     }
 
     .button-container button {
-        position: relative;
         border: none; 
         background: none; 
         padding: 0; 
@@ -119,7 +120,7 @@ body {
 
 
 .mapboxgl-ctrl-bottom-right {
-    bottom: 30px !important;
+    bottom: 50px !important;
 }
 
 .mapboxgl-ctrl-rotate {
@@ -367,12 +368,33 @@ body {
     cursor: pointer;
     font-size: 20px;
 }
-
+.chair {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    width: 200px;
+    height: auto;
+    z-index: 1000;
+    background-color: rgba(255, 255, 255, 0.7);
+    border-radius: 8px;
+}
+.nvidia {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 100px;
+    height: auto;
+    z-index: 1000;
+    background-color: rgba(255, 255, 255, 0.7);
+    border-radius: 2px;
+}
  </style>
 <link rel="icon" href="src/images/favicon.ico" type="image/x-icon">
 <link rel="shortcut icon" href="src/images/favicon.ico" type="image/x-icon">
 </head>
 <body>
+    <img src="src/images/chair.png" alt="TMS" class="chair">
+    <img src="src/images/nvidia.png" alt="Nvidia" class="nvidia">
     <div id="map" style="width: 99vw; height: 98.5vh;"></div>
     <div class="map-container">
         <div class="radiobox-container" id="checkbox-dataDropdown">
@@ -411,19 +433,19 @@ body {
             <label><strong>Zu schließende Straße(n) auswählen</strong></label>
             <div class="road-container-row">
             <div class="road-container">
-                <img src="src/images/bridge.png" alt="Carola Bridge" class="road-img" onclick="toggleSelection(this, 'road1')">
+                <img src="src/images/bridge.png" alt="Carola Bridge" class="road-img" onclick="toggleSelection(this, '1')">
                 <span class="road-name">Carolabrücke</span>
             </div>
             <div class="road-container">
-                <img src="src/images/road.png" alt="Königsbrücker Straße" class="road-img" onclick="toggleSelection(this, 'road2')">
+                <img src="src/images/road.png" alt="Königsbrücker Straße" class="road-img" onclick="toggleSelection(this, '2')">
                 <span class="road-name">Königsbrücker<br>Straße</span>
             </div>
             <div class="road-container">
-                <img src="src/images/street.png" alt="Zellescher Weg" class="road-img" onclick="toggleSelection(this, 'road3')">
+                <img src="src/images/street.png" alt="Zellescher Weg" class="road-img" onclick="toggleSelection(this, '3')">
                 <span class="road-name">Zellescher<br> Weg</span>
             </div>
             <div class="road-container">
-                <img src="src/images/highway.png" alt="Road 4" class="road-img" onclick="toggleSelection(this, 'road4')">
+                <img src="src/images/highway.png" alt="Road 4" class="road-img" onclick="toggleSelection(this, '4')">
                 <span class="road-name">Bautzner<br>Straße</span>
             </div>
             </div>
@@ -450,8 +472,143 @@ body {
         let bounds = null;
         let breaks = null;
         let currentPopup = null;
-
+        let layerCounter = 0;
+        let slider = document.getElementById('folderSlider');
         let popupTimer;
+        let selectedRoads = {};
+
+            // Initialize Mapbox
+        mapboxgl.accessToken = 'pk.eyJ1Ijoic3VyZW5kcmEyOSIsImEiOiJjbHR3eGZ1bXIwMGFnMmpzMWVmZzMzc2YzIn0.zJApAGxS7gq9GUM4crBwWA';
+        const map = new mapboxgl.Map({
+            container: 'map',
+            style: 'mapbox://styles/mapbox/streets-v11',
+            projection: 'globe' // set the projection to globe
+        });
+
+        map.addControl(new mapboxgl.NavigationControl(), 'bottom-right');
+        // Create a new mapboxgl button control Top Down View and fit to map bounds
+        class TopDown {
+        onAdd(map) {
+            this.map = map;
+            this.container = document.createElement('div');
+            this.container.className = 'mapboxgl-ctrl mapboxgl-ctrl-group';
+            const button = document.createElement('button');
+            button.className = 'mapboxgl-ctrl-icon mapboxgl-ctrl-map';
+            button.type = 'button';
+            button.title = 'Top Down';
+            button.onclick = () => {
+                map.flyTo({
+                        pitch: 0,
+                        bearing: 0,
+                    });
+                map.once('moveend', () => {
+                    map.fitBounds(bounds, {padding: 20});
+                });
+            };
+            this.container.appendChild(button);
+            return this.container;
+        }
+
+        onRemove() {
+            this.container.parentNode.removeChild(this.container);
+            this.map = undefined;
+        }
+    }
+
+
+        // Add the home button control to the map
+        map.addControl(new TopDown(), 'bottom-right');
+
+        // Create a new mapboxgl button control for 3D buildings
+        class ThreeD {
+            onAdd(map) {
+                this.map = map;
+                this.container = document.createElement('div');
+                this.container.className = 'mapboxgl-ctrl mapboxgl-ctrl-group';
+                const button = document.createElement('button');
+                button.className = 'mapboxgl-ctrl-icon mapboxgl-ctrl-3d';
+                button.type = 'button';
+                button.title = '3D View';
+                button.onclick = () => {
+                    map.flyTo({
+                        zoom: 16,
+                        pitch: 65,
+                        bearing: 0,
+                    });
+                };
+                this.container.appendChild(button);
+                return this.container;
+            }
+        
+            onRemove() {
+                this.container.parentNode.removeChild(this.container);
+                this.map = undefined;
+            }
+        }
+
+        // Add the home button control to the map
+        map.addControl(new ThreeD(), 'bottom-right');
+
+        // Create a new mapboxgl button control for continuous rotation
+        class RotateControl {
+            onAdd(map) {
+                this.map = map;
+                this.container = document.createElement('div');
+                this.container.className = 'mapboxgl-ctrl mapboxgl-ctrl-group';
+                const button = document.createElement('button');
+                button.className = 'mapboxgl-ctrl-icon mapboxgl-ctrl-rotate';
+                button.type = 'button';
+                button.title = 'Rotate';
+                button.onclick = () => {
+                    this._rotateMap();
+                };
+                this.container.appendChild(button);
+                return this.container;
+            }
+
+            _rotateMap() {
+                const rotate = () => {
+                    this.map.setBearing(this.map.getBearing() + 0.25);
+                    this.animationFrame = requestAnimationFrame(rotate);
+                };
+                if (this.animationFrame) {
+                    cancelAnimationFrame(this.animationFrame);
+                    this.animationFrame = null;
+                } else {
+                    this.animationFrame = requestAnimationFrame(rotate);
+                }
+            }
+
+            onRemove() {
+                if (this.animationFrame) {
+                    cancelAnimationFrame(this.animationFrame);
+                }
+                this.container.parentNode.removeChild(this.container);
+                this.map = undefined;
+            }
+        }
+
+        // Add the rotate button control to the map
+        map.addControl(new RotateControl(), 'bottom-right');
+
+        map.on('load', function() {
+                    map.addLayer({
+                        'id': '3d-buildings',
+                        'source': 'composite',
+                        'source-layer': 'building',
+                        'filter': ['==', 'extrude', 'true'],
+                        'type': 'fill-extrusion',
+                        'minzoom': 15,
+                        'paint': {
+                            'fill-extrusion-color': '#aaa',
+                            'fill-extrusion-height': ['get', 'height'],
+                            'fill-extrusion-base': ['get', 'min_height'],
+                            'fill-extrusion-opacity': 0.6,
+                        },
+                    });
+                });
+
+        updateFolder();
         updateVisualization();
         function selectVisualization(visualization) {
             closeCurrentPopup();
@@ -496,8 +653,6 @@ body {
             clearTimeout(popupTimer);
         }
 
-        const selectedRoads = {};
-
         function toggleSelection(image, roadId) {
             image.classList.toggle('selected');
             const roadNameSpan = image.nextElementSibling;
@@ -512,7 +667,7 @@ body {
             updateFolder();
             updateVisualization();
         }
-
+        
         function updateFolder() {
             switch (Object.keys(selectedRoads).length) {
                 case 1:
@@ -528,40 +683,39 @@ body {
                     folder = Object.keys(selectedRoads).sort().join('_');
                     break;
                 default:
-                    folder = 'base';
+                    folder = '1';
                     break;
             }
+            drawGeoJSONLayers(folder);
         }
 
         function readdirectories() {
-            fetch(`${basepath}/${folder}`)
+            return fetch(`${basepath}/${folder}/models/assignments/directories.json`)
                 .then(response => response.json())
                 .then(data => {
                     directories = data;
-                    const slider = document.getElementById('folderSlider');
+                    slider = document.getElementById('folderSlider');
                     slider.max = directories.length - 1;
-                    slider.value = directories.length - 1;
-                    document.getElementById('folderName').textContent = directories[directories.length - 1].name;
-                    updateVisPathAndVisualize(directories.length - 1);
+                    slider.value = Math.floor(directories.length / 2);
+                    updateSliderBackgroundandOffset(slider, bubble)
+                    document.getElementById('folderName').textContent = directories[slider.value].name;
                 })
                 .catch(error => console.error('Error fetching directories:', error));
         }
 
         function updateVisPathAndVisualize(index) {
             const sfolder = directories[index].name;
-            drawGeoJSONLayers(folder);
             colorCode(dataType, folder, sfolder);
         }
 
-        function updateVisualization() {
-            readdirectories();
-            console.log(directories)
-            updateVisPathAndVisualize(0);
+        async function updateVisualization() {
+            await readdirectories(); // Wait for directories to be fetched and processed
+            const idx = Math.floor(directories.length / 2);
+
+            updateVisPathAndVisualize(idx);
         }
 
     dataType = document.querySelector('.highlighted').alt;
-
-    readdirectories();
 
     function drawGeoJSONLayers(folderPath) {
         // Remove existing layers
@@ -580,72 +734,78 @@ body {
         let edgeColor = '#8B008B';
         let zoneColor = '#4169E1';
         let zoneBorderColor = '#00008B';
+
         fetch(`${basepath}/${folderPath}/edges.geojson`)
             .then(response => response.json())
             .then(data => {
                 edgesGeojsonData = data;
-                map.addSource('edges-source', {
-                    type: 'geojson',
-                    data: edgesGeojsonData
+                map.on('load', function() {
+                    map.addSource('edges-source', {
+                        type: 'geojson',
+                        data: edgesGeojsonData
+                    });
                 });
                 edgesLayerId = 'edges-layer-' + new Date().getTime();
-
-                map.addLayer({
-                    id: edgesLayerId,
-                    type: 'line',
-                    source: 'edges-source',
-                    paint: {
-                        'line-color': edgeColor,
-                        'line-width': [
-                                    'interpolate', 
-                                    ['linear'], 
-                                    ['zoom'],
-                                    // Zoom level and corresponding line width
-                                    1, 1,  // At zoom level 1, line width will be 1
-                                    5, 2,  // At zoom level 5, line width will be 2
-                                    10, 3,  // At zoom level 10, line width will be 3
-                                    15, 5,  // At zoom level 15, line width will be 4
-                                    18, 10, // At zoom level 18, line width will be 10
-                                    20, 15, // At zoom level 20, line width will be 15
-                                ],
-                    },
+                map.on('load', function() {
+                    map.addLayer({
+                        id: edgesLayerId,
+                        type: 'line',
+                        source: 'edges-source',
+                        paint: {
+                            'line-color': edgeColor,
+                            'line-width': [
+                                        'interpolate', 
+                                        ['linear'], 
+                                        ['zoom'],
+                                        // Zoom level and corresponding line width
+                                        1, 1,  // At zoom level 1, line width will be 1
+                                        5, 2,  // At zoom level 5, line width will be 2
+                                        10, 3,  // At zoom level 10, line width will be 3
+                                        15, 5,  // At zoom level 15, line width will be 4
+                                        18, 10, // At zoom level 18, line width will be 10
+                                        20, 15, // At zoom level 20, line width will be 15
+                                    ],
+                        },
+                    });
                 });
             })
             .catch(error => console.error('Error fetching GeoJSON:', error));
 
         // Add grid_polygon.geojson layer
-        map.addSource('grid-polygon-source', {
-            type: 'geojson',
-            data: `${basepath}/${folder}/aggrid_polygon.geojson`,
+        map.on('load', function() {
+            map.addSource('grid-polygon-source', {
+                type: 'geojson',
+                data: `${basepath}/${folder}/zones.geojson`,
+            });
         });
         
         // Generate a unique layer ID using the counter
         gridPolygonLayerId = `grid-polygon-layer-${layerCounter}`;
         layerCounter++;
-
-        // Add the grid polygon layer outside of the event handler
-        map.addLayer({
-            id: gridPolygonLayerId,
-            type: 'fill',
-            source: 'grid-polygon-source',
-            paint: {
-                'fill-color': zoneColor,
-                'fill-opacity': 0.2, // You can adjust the opacity as needed
-            },
+        map.on('load', function() {
+            // Add the grid polygon layer outside of the event handler
+            map.addLayer({
+                id: gridPolygonLayerId,
+                type: 'fill',
+                source: 'grid-polygon-source',
+                paint: {
+                    'fill-color': zoneColor,
+                    'fill-opacity': 0.2, // You can adjust the opacity as needed
+                },
+            });
+            map.addLayer({
+                id: gridPolygonLayerId + '-border',
+                type: 'line',
+                source: 'grid-polygon-source',
+                layout: {},
+                paint: {
+                    'line-color': zoneBorderColor,
+                    'line-width': 3 // Adjust this value for your desired thickness
+                }
+            }, gridPolygonLayerId); // This ensures the line layer is below the fill layer
         });
-        map.addLayer({
-            id: gridPolygonLayerId + '-border',
-            type: 'line',
-            source: 'grid-polygon-source',
-            layout: {},
-            paint: {
-                'line-color': zoneBorderColor,
-                'line-width': 3 // Adjust this value for your desired thickness
-            }
-        }, gridPolygonLayerId); // This ensures the line layer is below the fill layer
-
         // Fetch GeoJSON data to calculate bounds
-        fetch(`${basepath}/${folderPath}/aggrid_polygon.geojson`)
+        fetch(`${basepath}/${folderPath}/zones.geojson`)
             .then(response => response.json())
             .then(geojsonData => {
                 // Extract coordinates from the GeoJSON data
@@ -659,151 +819,17 @@ body {
                         });
                     }
                 });
-
                 // Calculate bounds from the coordinates
                 bounds = coordinates.reduce(function (bounds, coord) {
                     return bounds.extend(coord);
                 }, new mapboxgl.LngLatBounds(coordinates[0], coordinates[0]));
 
                 // Fit the map to the calculated bounds
-                map.fitBounds(bounds, { padding: 20 }); // You can adjust the padding as needed
-            });
-    }
-
-    // Initialize Mapbox
-    mapboxgl.accessToken = 'pk.eyJ1Ijoic3VyZW5kcmEyOSIsImEiOiJjbHR3eGZ1bXIwMGFnMmpzMWVmZzMzc2YzIn0.zJApAGxS7gq9GUM4crBwWA';
-    const map = new mapboxgl.Map({
-        container: 'map',
-        style: 'mapbox://styles/mapbox/standard',
-        center: [13.728688, 51.030713],
-        zoom: 17,
-        pitch: 60,
-        bearing: 37.6,
-        projection: 'globe' // set the projection to globe
-    });
-    map.addControl(new mapboxgl.NavigationControl(), 'bottom-right');
-    // Create a new mapboxgl button control Top Down View and fit to map bounds
-    class TopDown {
-    onAdd(map) {
-        this.map = map;
-        this.container = document.createElement('div');
-        this.container.className = 'mapboxgl-ctrl mapboxgl-ctrl-group';
-        const button = document.createElement('button');
-        button.className = 'mapboxgl-ctrl-icon mapboxgl-ctrl-map';
-        button.type = 'button';
-        button.title = 'Top Down';
-        button.onclick = () => {
-            map.flyTo({
-                    pitch: 0,
-                    bearing: 0,
-                });
-            map.once('moveend', () => {
-                map.fitBounds(bounds, {padding: 20});
-            });
-        };
-        this.container.appendChild(button);
-        return this.container;
-    }
-
-    onRemove() {
-        this.container.parentNode.removeChild(this.container);
-        this.map = undefined;
-    }
-}
-
-
-    // Add the home button control to the map
-    map.addControl(new TopDown(), 'bottom-right');
-
-    // Create a new mapboxgl button control for 3D buildings
-    class ThreeD {
-        onAdd(map) {
-            this.map = map;
-            this.container = document.createElement('div');
-            this.container.className = 'mapboxgl-ctrl mapboxgl-ctrl-group';
-            const button = document.createElement('button');
-            button.className = 'mapboxgl-ctrl-icon mapboxgl-ctrl-3d';
-            button.type = 'button';
-            button.title = '3D View';
-            button.onclick = () => {
-                map.flyTo({
-                    zoom: 16,
-                    pitch: 65,
-                    bearing: 0,
-                });
-            };
-            this.container.appendChild(button);
-            return this.container;
-        }
-    
-        onRemove() {
-            this.container.parentNode.removeChild(this.container);
-            this.map = undefined;
-        }
-    }
-
-    // Add the home button control to the map
-    map.addControl(new ThreeD(), 'bottom-right');
-
-    // Create a new mapboxgl button control for continuous rotation
-    class RotateControl {
-        onAdd(map) {
-            this.map = map;
-            this.container = document.createElement('div');
-            this.container.className = 'mapboxgl-ctrl mapboxgl-ctrl-group';
-            const button = document.createElement('button');
-            button.className = 'mapboxgl-ctrl-icon mapboxgl-ctrl-rotate';
-            button.type = 'button';
-            button.title = 'Rotate';
-            button.onclick = () => {
-                this._rotateMap();
-            };
-            this.container.appendChild(button);
-            return this.container;
-        }
-
-        _rotateMap() {
-            const rotate = () => {
-                this.map.setBearing(this.map.getBearing() + 0.25);
-                this.animationFrame = requestAnimationFrame(rotate);
-            };
-            if (this.animationFrame) {
-                cancelAnimationFrame(this.animationFrame);
-                this.animationFrame = null;
-            } else {
-                this.animationFrame = requestAnimationFrame(rotate);
-            }
-        }
-
-        onRemove() {
-            if (this.animationFrame) {
-                cancelAnimationFrame(this.animationFrame);
-            }
-            this.container.parentNode.removeChild(this.container);
-            this.map = undefined;
-        }
-    }
-
-    // Add the rotate button control to the map
-    map.addControl(new RotateControl(), 'bottom-right');
-
-    map.on('load', function() {
-                map.addLayer({
-                    'id': '3d-buildings',
-                    'source': 'composite',
-                    'source-layer': 'building',
-                    'filter': ['==', 'extrude', 'true'],
-                    'type': 'fill-extrusion',
-                    'minzoom': 15,
-                    'paint': {
-                        'fill-extrusion-color': '#aaa',
-                        'fill-extrusion-height': ['get', 'height'],
-                        'fill-extrusion-base': ['get', 'min_height'],
-                        'fill-extrusion-opacity': 0.6,
-                    },
+                map.on('load', function() {
+                    map.fitBounds(bounds, { padding: 20 }); // You can adjust the padding as needed
                 });
             });
-
+    }
         function updateSliderBackgroundandOffset(slider, bubble) {
             const position = slider.value / slider.max;
             const offset = (slider.offsetWidth - bubble.offsetWidth) * position;
@@ -812,7 +838,6 @@ body {
             slider.style.background = `linear-gradient(to right, #4CAF50 ${currentValuePercentage}%, #ccc ${currentValuePercentage}%)`;
         }
 
-        let slider = document.getElementById('folderSlider');
         let bubble = document.getElementById('folderName');
 
         slider.addEventListener('input', function() {
@@ -842,14 +867,14 @@ body {
                 break;
             case 'emissions':
                 if (breaks === null) {
-                    breaks = await getQuantiles();
+                    breaks = [0.5, 1, 1.5]
                 }
                 await updateZonesLayer(folderPath, foldername, 'emissions');
                 removeBaseLayer();
                 break;
             case 'equity':
                 if (breaks === null) {
-                    breaks = await getQuantiles();
+                    breaks = [0.5, 1, 1.5]
                 }
                 await updateZonesLayer(folderPath, foldername, 'equity');
                 removeBaseLayer();
@@ -859,13 +884,6 @@ body {
         }
     }
 
-    async function getQuantiles() {
-        const fullpath = `${folderPathFromSession}/${folderPath}/models/${visfolder}/${aepath}/`;
-        const response = await fetch(`/get-quantiles?path=${encodeURIComponent(fullpath)}`);
-
-        const result = await response.json();
-        return result.breaks;
-    }
     function toFixedSafe(value, digits) {
                         const number = parseFloat(value);
                         return !isNaN(number) ? number.toFixed(digits) : value;
@@ -873,15 +891,16 @@ body {
     async function updateZonesLayer(folderPath, foldername, dataType) {
         const geojsonData = await loadAndProcessData(folderPath, foldername, dataType, false);
         // define color stops as an expression
+        let colorStops = null;
         if (dataType === 'emissions') {
-            const colorStops = [
+            colorStops = [
                 { value: breaks[0], color: 'green' },
                 { value: breaks[1], color: 'orange' },
                 { value: breaks[2], color: 'red' }
             ];
         }
         else if (dataType === 'equity') {
-            const colorStops = [
+            colorStops = [
                 { value: breaks[0], color: 'red' },
                 { value: breaks[1], color: 'orange' },
                 { value: breaks[2], color: 'green' }
@@ -903,23 +922,25 @@ body {
             map.setLayoutProperty('zones-layer', 'visibility', 'visible');
         }
         else{
-            map.addLayer({
-                id: 'zones-layer',
-                type: 'fill',
-                source: {
-                    type: 'geojson',
-                    data: geojsonData,
-                },
-                paint: {
-                    'fill-color': [
-                        'case',
-                        ['boolean', ['feature-state', 'hover'], false],
-                        'blue',
-                        // Use Mapbox GL JS expressions to define the color scale
-                        ['interpolate', ['linear'], ['get', 'value'], ...colorStopsExpression],
-                    ],
-                    'fill-opacity': 0.4, // You can adjust the opacity as needed
-                },
+            map.on('load', function() {
+                map.addLayer({
+                    id: 'zones-layer',
+                    type: 'fill',
+                    source: {
+                        type: 'geojson',
+                        data: geojsonData,
+                    },
+                    paint: {
+                        'fill-color': [
+                            'case',
+                            ['boolean', ['feature-state', 'hover'], false],
+                            'blue',
+                            // Use Mapbox GL JS expressions to define the color scale
+                            ['interpolate', ['linear'], ['get', 'value'], ...colorStopsExpression],
+                        ],
+                        'fill-opacity': 0.4, // You can adjust the opacity as needed
+                    },
+                });
             });
         }
 
@@ -1000,32 +1021,34 @@ body {
             map.setLayoutProperty('edges-layer', 'visibility', 'visible');
         }
         else{
-            map.addLayer({
-                id: 'edges-layer',
-                type: 'line',
-                source: {
-                    type: 'geojson',
-                    data: geojsonData,
-                },
-                paint: {
-                    'line-color': [
-                        'case',
-                        ['boolean', ['feature-state', 'hover'], false],
-                        'red',
-                        ['interpolate', ['linear'], ['get', 'value'], ...colorStopsExpression],
-                    ],
-                    'line-width': [
-                        'interpolate',
-                        ['linear'],
-                        ['zoom'],
-                        1, 1,
-                        5, 2,
-                        10, 3,
-                        15, 5,
-                        18, 10,
-                        20, 15,
-                    ],
-                },
+            map.on('load', function() {
+                map.addLayer({
+                    id: 'edges-layer',
+                    type: 'line',
+                    source: {
+                        type: 'geojson',
+                        data: geojsonData,
+                    },
+                    paint: {
+                        'line-color': [
+                            'case',
+                            ['boolean', ['feature-state', 'hover'], false],
+                            'red',
+                            ['interpolate', ['linear'], ['get', 'value'], ...colorStopsExpression],
+                        ],
+                        'line-width': [
+                            'interpolate',
+                            ['linear'],
+                            ['zoom'],
+                            1, 1,
+                            5, 2,
+                            10, 3,
+                            15, 5,
+                            18, 10,
+                            20, 15,
+                        ],
+                    },
+                });
             });
         }
         function getReverseEdgeData(efrom, eto, e) {
@@ -1118,7 +1141,7 @@ body {
 
     async function loadAndProcessData(folderPath, foldername, dataType, normalize) {
         if (dataType === 'congestion') {
-            const linkinfo = await fetch(`${basepath}/${folderPath}/${foldername}/link.csv`);
+            const linkinfo = await fetch(`${basepath}/${folderPath}/models/assignments/${foldername}/linkTT.csv`);
             const text = await linkinfo.text();
             const data = d3.csvParse(text);
             netinfo = await fetch(`${basepath}/${folderPath}/net.csv`);
@@ -1153,42 +1176,35 @@ body {
                 }
             });
             return geojsonData;
-        } else if (dataType === 'emissions') {
-            const zoneinfo = await fetch(`${basepath}/${folderPath}/${foldername}/zones_outputs.csv`);
-            const text = await zoneinfo.text();
-            const data = d3.csvParse(text);
-            const geojsonResponse = await fetch(`${basepath}/${folderPath}/aggrid_polygon.geojson`);
-            const geojsonData = await geojsonResponse.json();
-            geojsonData.features.forEach((feature, index) => {
-                const entry = data[index];
-                if (entry && entry['carbon'] !== null) {
-                    const carbon = parseFloat(entry['carbon']) > 0 ? parseFloat(entry['carbon']) : 0;
-                    feature.properties.value = carbon / area;
-                } else {
-                    feature.properties.value = 0;
-                }
-                const area = toFixedSafe(calculateArea(feature.geometry),2);
-                feature.properties.area = area;
-                feature.properties.zoneout = 'emissions';
-            });
-            return geojsonData;
         }
         else {
-            const zoneinfo = await fetch(`${basepath}/${folderPath}/${foldername}/zones_outputs.csv`);
+            const zoneinfo = await fetch(`${basepath}/${folderPath}/models/assignments/${foldername}/zone_outputs.csv`);
             const text = await zoneinfo.text();
             const data = d3.csvParse(text);
-            const geojsonResponse = await fetch(`${basepath}/${folderPath}/aggrid_polygon.geojson`);
+            const geojsonResponse = await fetch(`${basepath}/${folderPath}/zones.geojson`);
             const geojsonData = await geojsonResponse.json();
             geojsonData.features.forEach((feature, index) => {
                 const entry = data[index];
-                if (entry && entry['CI'] !== null) {
-                    feature.properties.value = parseFloat(entry['CI']) > 0 ? parseFloat(entry['CI']) : 0;
-                } else {
-                    feature.properties.value = 0;
+                if (dataType === 'emissions') {
+                    if (entry && entry['carbon'] !== null) {
+                        const carbon = parseFloat(entry['carbon']) > 0 ? parseFloat(entry['carbon']) : 0;
+                        feature.properties.value = carbon / area;
+                    } else {
+                        feature.properties.value = 0;
+                    }
+                    feature.properties.zoneout = 'emissions';
+                }
+                else if (dataType === 'equity') {
+                    if (entry && entry['CI'] !== null) {
+                        feature.properties.value = parseFloat(entry['CI']) > 0 ? parseFloat(entry['CI']) : 0;
+                    } else {
+                        feature.properties.value = 0;
+                    }
+                    feature.properties.zoneout = 'equity';
                 }
                 const area = toFixedSafe(calculateArea(feature.geometry),2);
                 feature.properties.area = area;
-                feature.properties.zoneout = 'equity';
+
             });
             return geojsonData;
         }
