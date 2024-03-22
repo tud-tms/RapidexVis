@@ -650,19 +650,6 @@ body {
             resetSliderToMiddle();
         });
 
-        function resetSliderToMiddle() {
-            const slider = document.getElementById('folderSlider');
-            if (slider) {
-                // Assuming your slider min is 0 and max is 100
-                // Adjust the min and max values according to your slider's actual settings
-                const middleValue = (parseInt(slider.min) + parseInt(slider.max)) / 2;
-                slider.value = middleValue;
-                console.log('Slider reset to middle.');
-
-                // Manually trigger the input event for the slider
-                slider.dispatchEvent(new Event('input'));
-            }
-        }
         function selectVisualization(visualization) {
             closeCurrentPopup();
 
@@ -1289,34 +1276,100 @@ body {
         });
     }
 
+        const defaultMapState = {
+            center: [13.737627, 51.050233],
+            zoom: 17,
+            pitch: 70,
+            bearing: 37.6,
+            projection: 'globe'
+        };
 
-    function handleInactivity() {
-            clickTopDownButton();
-            resetSliderToMiddle();
+        let inactivityTimer;
+        let activityDetected = true;
+
+        function addActivityListeners() {
+            document.addEventListener('mousemove', handleUserActivity);
+            document.addEventListener('keypress', handleUserActivity);
+            document.addEventListener('click', handleUserActivity);
+            document.addEventListener('touchstart', handleUserActivity);
         }
 
-    function clickTopDownButton() {
+        function removeActivityListeners() {
+            document.removeEventListener('mousemove', handleUserActivity);
+            document.removeEventListener('keypress', handleUserActivity);
+            document.removeEventListener('click', handleUserActivity);
+            document.removeEventListener('touchstart', handleUserActivity);
+        }
+
+        function clickEmissionButton() {
+            const emissionButton = document.querySelector('#emissionImg');
+            emissionButton.click();
+        }
+
+        async function handleInactivity() {
+            // Ensure activity listeners are removed to prevent handling during the inactivity actions
+            removeActivityListeners();
+            
+            clickEmissionButton(); 
+            await new Promise(resolve => setTimeout(resolve, 100)); // Small delay to ensure sequence
+            resetMapToDefault(); 
+            resetSliderToMiddle(); 
+            setTimeout(() => {
+                clickRotateButton(); 
+                addActivityListeners();
+            }, 1000);
+        }
+
+        function clickRotateButton() {
+            const rotateButton = document.querySelector('.mapboxgl-ctrl-rotate');
+            rotateButton.click();
+        }
+
+        function clickTopDownButton() {
             const topDownButton = document.querySelector('.mapboxgl-ctrl-map');
-            if (topDownButton) {
-                topDownButton.click();
-                console.log('TopDown button clicked due to inactivity.');
+            topDownButton.click();
+            const congestionButton = document.querySelector('#congestionImg');
+            congestionButton.click();
+        }
+
+        function resetSliderToMiddle() {
+            const slider = document.getElementById('folderSlider');
+            if (slider) {
+                const middleValue = (parseInt(slider.min) + parseInt(slider.max)) / 2;
+                slider.value = middleValue;
             }
         }
 
-        let inactivityTimer;
+        function resetMapToDefault() {
+            map.flyTo(defaultMapState);
+        }
+
+        function handleUserActivity() {
+            if (!activityDetected) {
+                activityDetected = true;
+                clearTimeout(inactivityTimer);
+                clickRotateButton();
+                clickTopDownButton();
+                resetInactivityTimer();
+            }
+            else {
+                resetInactivityTimer();
+            }
+        }
 
         function resetInactivityTimer() {
             clearTimeout(inactivityTimer);
-            inactivityTimer = setTimeout(handleInactivity, 300000);
+            inactivityTimer = setTimeout(() => {
+                activityDetected = false;
+                handleInactivity();
+            }, 300000);
         }
 
-        document.addEventListener('mousemove', resetInactivityTimer);
-        document.addEventListener('keypress', resetInactivityTimer);
-        document.addEventListener('click', resetInactivityTimer);
-        document.addEventListener('touchstart', resetInactivityTimer);
-
-        window.onload = resetInactivityTimer;
-
+        window.onload = function() {
+            resetInactivityTimer();
+            resetSliderToMiddle();
+            addActivityListeners();
+        };
     </script>
     </body>
 </html>
