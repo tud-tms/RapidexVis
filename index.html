@@ -1245,48 +1245,50 @@ body {
         }
     }
 
-const visualizationBreaks = {
-    'congestion': [
-        {color: 'red', label: '200% Increase in Travel Time'},
-        {color: 'orange', label: '50% Increase in Travel Time'},
-        {color: 'green', label: 'No Congestion'}
-    ],
-    'emission': [
-    {color: 'red', label: '> 4 Tons CO2/km²'},
-        {color: 'orange', label: '2-4 Tons CO2/km²'},
-        {color: 'green', label: '< 2 Tons CO2/km²'}
-    ],
-    'equity': [
-        {color: 'red', label: 'Congestion Index > 5'},
-        {color: 'orange', label: 'Congestion Index 3-5'},
-        {color: 'green', label: 'Congestion Index < 3'}
-    ]
-};
+    const visualizationBreaks = {
+        'congestion': [
+            {color: 'red', label: '200% Increase in Travel Time'},
+            {color: 'orange', label: '50% Increase in Travel Time'},
+            {color: 'green', label: 'No Congestion'}
+        ],
+        'emission': [
+            // add CO_2
+        {color: 'red', label: '> 4 Tons CO<sub>2</sub>/km<sup>2</sup>'},
+            {color: 'orange', label: '2-4 Tons CO<sub>2</sub>/km<sup>2</sup>'},
+            {color: 'green', label: '< 2 Tons CO<sub>2</sub>/km<sup>2</sup>'}
+        ],
+        'equity': [
+            {color: 'red', label: 'Congestion Index > 5'},
+            {color: 'orange', label: 'Congestion Index 3-5'},
+            {color: 'green', label: 'Congestion Index < 3'}
+        ]
+    };
 
-function updateLegend(visualizationType) {
-    const legend = document.getElementById('legend');
-    legend.innerHTML = '';
+    function updateLegend(visualizationType) {
+        const legend = document.getElementById('legend');
+        legend.innerHTML = '';
 
-    const breaks = visualizationBreaks[visualizationType];
-    
-    breaks.forEach((breakItem) => {
-        const item = document.createElement('div');
-        item.className = 'legend-item';
+        const breaks = visualizationBreaks[visualizationType];
+        
+        breaks.forEach((breakItem) => {
+            const item = document.createElement('div');
+            item.className = 'legend-item';
 
-        const color = document.createElement('div');
-        color.className = 'legend-color';
-        color.style.backgroundColor = breakItem.color;
+            const color = document.createElement('div');
+            color.className = 'legend-color';
+            color.style.backgroundColor = breakItem.color;
 
-        const text = document.createElement('div');
-        text.className = 'legend-text';
-        text.textContent = breakItem.label;
+            const text = document.createElement('div');
+            text.className = 'legend-text';
+            text.innerHTML = breakItem.label;
 
-        item.appendChild(color);
-        item.appendChild(text);
+            item.appendChild(color);
+            item.appendChild(text);
 
-        legend.appendChild(item);
-    });
-}
+            legend.appendChild(item);
+        });
+    }
+
 
     function handleInactivity() {
             clickTopDownButton();
