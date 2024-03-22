@@ -97,6 +97,7 @@ body {
 
     .selected-text {
         color: red;
+        font-weight: bold;
     }
 
     .button-container button {
@@ -387,6 +388,17 @@ body {
     z-index: 1000;
     background-color: rgba(255, 255, 255, 0.7);
     border-radius: 2px;
+}
+
+@media screen and (max-width: 768px) {
+    .roads {
+        flex-direction: row; /* Change to row for mobile */
+        align-items: center; /* Center align items for a cleaner look */
+    }
+    .road-img, .button-img .chair, .nvidia{
+        width: 50%; /* Reduce image size to 50% of its current size on mobile devices */
+    }
+
 }
  </style>
 <link rel="icon" href="src/images/favicon.ico" type="image/x-icon">
