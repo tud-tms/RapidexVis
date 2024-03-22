@@ -1307,7 +1307,7 @@ body {
 
         function resetInactivityTimer() {
             clearTimeout(inactivityTimer);
-            inactivityTimer = setTimeout(handleInactivity, 3000);
+            inactivityTimer = setTimeout(handleInactivity, 300000);
         }
 
         document.addEventListener('mousemove', resetInactivityTimer);
