@@ -597,6 +597,9 @@ body {
 
         updateFolder();
         updateVisualization();
+        map.on('load', function() {
+            window.setTimeout(() => selectVisualization('congestion'), 0);
+        });
         function selectVisualization(visualization) {
             closeCurrentPopup();
 
@@ -615,7 +618,7 @@ body {
                 popup.style.display = 'block';
                 popupTimer = setTimeout(() => {
                     popup.style.display = 'none';
-                }, 15000);
+                }, 5000);
             }
 
             // Update dataType only if a different visualization is selected
@@ -1175,7 +1178,6 @@ body {
             const data = d3.csvParse(text);
             const geojsonResponse = await fetch(`${basepath}/${folderPath}/zones.geojson`);
             const geojsonData = await geojsonResponse.json();
-            console.log(geojsonData);
             geojsonData.features.forEach((feature, index) => {
                 const entry = data[index];
                 let area = toFixedSafe(calculateArea(feature.geometry),2);
@@ -1188,7 +1190,6 @@ body {
                         feature.properties.value = 0;
                     }
                     feature.properties.zoneout = 'emission';
-                    console.log(feature.properties);
                 }
 
                 else if (dataType === 'equity') {
