@@ -35,6 +35,7 @@ body {
 .radiobox-container{
     position: fixed;
     display: flex;
+    flex-direction: column;
     gap: 40px;
     border-radius: 8px;
     padding: 5px;
@@ -392,11 +393,12 @@ body {
 
 @media screen and (max-width: 768px) {
     .roads, .radiobox-container {
-        flex-direction: row; /* Change to row for mobile */
-        align-items: center; /* Center align items for a cleaner look */
+        flex-direction: row;
+        align-items: center;
+        gap: 10px;
     }
     .road-img, .button-img .chair, .nvidia{
-        width: 10%; /* Reduce image size to 50% of its current size on mobile devices */
+        width: 20px;
     }
 
 }
