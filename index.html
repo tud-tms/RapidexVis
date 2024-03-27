@@ -36,14 +36,21 @@ body {
     position: fixed;
     display: flex;
     flex-direction: column;
-    gap: 40px;
+    gap: 10px;
     border-radius: 8px;
+    left: 50px;
     padding: 5px;
     pointer-events: auto;
     border-radius: 8px;
     border-color: 2px solid #4CAF50;
     bottom: 80px !important;
     background-color: rgba(255, 255, 255, 0.5);
+}
+
+.radio-group{
+    display: flex;
+    gap: 30px;
+    align-items: center;
 }
 .roads {
   position: fixed;
@@ -350,8 +357,7 @@ body {
     position: absolute;
     width: 350px;
     height: 300px;
-    left: 100%;
-    bottom: 0%;
+    bottom: 100%;
     transform: translateX(0%);
     border: 2px solid #4CAF50;
     border-radius: 8px;
@@ -451,6 +457,8 @@ body {
     <div id="map" style="width: 99vw; height: 98.5vh;"></div>
     <div class="map-container">
         <div class="radiobox-container" id="checkbox-dataDropdown">
+            <label><strong>Wählen Sie eine Option für die Visualisierung</strong></label>
+            <div class="radio-group">
             <div class="button-container">
                 <button onclick="selectVisualization('congestion')">
                     <img id="congestionImg" class="button-img highlighted" src="src/images/congestion.png" alt="Congestion">
@@ -480,6 +488,7 @@ body {
                         <span class="close-btn" onclick="closePopup(event, 'equityPopup')">&times;</span>
                     </div>
                 </button>
+            </div>
             </div>
         </div>
         <div class="roads" id="road-selection">
@@ -1234,20 +1243,20 @@ body {
 
     const visualizationBreaks = {
         'congestion': [
-            {color: 'red', label: '200% Increase in Travel Time'},
-            {color: 'orange', label: '50% Increase in Travel Time'},
-            {color: 'green', label: 'No Congestion'}
+            {color: 'red', label: '200% Erhöhung der Reisezeit'},
+            {color: 'orange', label: '50% Erhöhung der Reisezeit'},
+            {color: 'green', label: 'Keine Verkehrsstaus'}
         ],
         'emission': [
             // add CO_2
-        {color: 'red', label: '> 4 Tons CO<sub>2</sub>/km<sup>2</sup>'},
-            {color: 'orange', label: '2-4 Tons CO<sub>2</sub>/km<sup>2</sup>'},
-            {color: 'green', label: '< 2 Tons CO<sub>2</sub>/km<sup>2</sup>'}
+        {color: 'red', label: '> 4 Tonnen CO<sub>2</sub>/km<sup>2</sup>'},
+            {color: 'orange', label: '2-4 Tonnen CO<sub>2</sub>/km<sup>2</sup>'},
+            {color: 'green', label: '< 2 Tonnen CO<sub>2</sub>/km<sup>2</sup>'}
         ],
         'equity': [
-            {color: 'red', label: 'Congestion Index > 5'},
-            {color: 'orange', label: 'Congestion Index 3-5'},
-            {color: 'green', label: 'Congestion Index < 3'}
+            {color: 'red', label: 'Index der Verkehrsüberlastung > 5'},
+            {color: 'orange', label: 'Index der Verkehrsüberlastung 3-5'},
+            {color: 'green', label: 'Index der Verkehrsüberlastung < 3'}
         ]
     };
 
@@ -1257,6 +1266,15 @@ body {
 
         const breaks = visualizationBreaks[visualizationType];
         
+        const title = document.createElement('div');
+        title.className = 'legend-title';
+
+        title.innerHTML = visualizationType === 'congestion' ? 'Verkehrsstaus' : visualizationType === 'emission' ? 'CO<sub>2</sub> Emissionen' : 'Gerechtigkeit';
+        title.style.textAlign = 'center';
+        title.style.fontWeight = 'bold';
+        legend.appendChild(title);
+
+
         breaks.forEach((breakItem) => {
             const item = document.createElement('div');
             item.className = 'legend-item';
