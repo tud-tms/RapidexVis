@@ -44,7 +44,7 @@ body {
     border-radius: 8px;
     border-color: 2px solid #4CAF50;
     bottom: 80px !important;
-    background-color: rgba(255, 255, 255, 0.5);
+    background-color: rgba(255, 255, 255, 0.7);
 }
 
 .radio-group{
@@ -677,7 +677,7 @@ body {
                 popup.style.display = 'block';
                 popupTimer = setTimeout(() => {
                     popup.style.display = 'none';
-                }, 5000);
+                }, 10000);
             }
 
             if (dataType !== visualization) {
@@ -869,6 +869,7 @@ body {
             const position = slider.value / slider.max;
             const offset = (slider.offsetWidth - bubble.offsetWidth) * position;
             bubble.style.left = `${offset}px`;
+            bubble.style.display = 'block';
             const currentValuePercentage = position * 100;
             slider.style.background = `linear-gradient(to right, #4CAF50 ${currentValuePercentage}%, #ccc ${currentValuePercentage}%)`;
         }
@@ -885,14 +886,14 @@ body {
             updateSliderBackgroundandOffset(slider, bubble);
         }
 
-        slider.onmousedown = function() {
-            bubble.textContent = directories[Number(slider.value)].name;
-            bubble.style.display = 'block';
-        }
+        // slider.onmousedown = function() {
+        //     bubble.textContent = directories[Number(slider.value)].name;
+        //     bubble.style.display = 'block';
+        // }
 
-        slider.onmouseup = function() {
-            bubble.style.display = 'none';
-        }
+        // slider.onmouseup = function() {
+        //     bubble.style.display = 'none';
+        // }
 
     async function colorCode(dataType, folderPath, foldername) {
         switch (dataType) {
