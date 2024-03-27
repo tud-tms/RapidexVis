@@ -69,8 +69,8 @@ body {
 }
         .road-container-row {
             display: flex; /* Align road containers in a row */
-            /* flex-wrap: wrap; Wrap them to next line if space is not sufficient */
-            flex-direction: column;
+            flex-wrap: wrap;
+            /* flex-direction: column; */
             margin-top: 5px; /* Spacing between label and road container row */
         }
         .road-container {
@@ -112,11 +112,12 @@ body {
     .button-container button {
         border: none; 
         background: none; 
-        padding: 0; 
+        padding: 10px; 
         cursor: pointer;
+        align-items: center;
     }
     .button-img { 
-        width: 100px; 
+        width: 70px; 
         height: auto; 
         transition: transform 0.3s ease; 
     }
@@ -130,7 +131,7 @@ body {
 
 
 .mapboxgl-ctrl-bottom-right {
-    bottom: 50px !important;
+    bottom: 65px !important;
 }
 
 .mapboxgl-ctrl-rotate {
@@ -356,7 +357,7 @@ body {
     display: none;
     position: absolute;
     width: 350px;
-    height: 300px;
+    height: 250px;
     bottom: 100%;
     transform: translateX(0%);
     border: 2px solid #4CAF50;
@@ -378,7 +379,7 @@ body {
     margin: 10px 0 0; /* Adds some space above the text */
     color: #333;
     text-align: justify;
-    font-size: large;
+    font-size: 16px;
 }
 
 .close-btn {
@@ -492,7 +493,7 @@ body {
             </div>
         </div>
         <div class="roads" id="road-selection">
-            <label><strong>Zu schließende <br>Straße(n) auswählen</strong></label>
+            <label><strong>Zu schließende Straße(n) auswählen</strong></label>
             <div class="road-container-row">
             <div class="road-container">
                 <img src="src/images/bridge.png" alt="Carola Bridge" class="road-img" onclick="toggleSelection(this, '1')">
@@ -610,7 +611,7 @@ body {
             }
         }
 
-        map.addControl(new ThreeD(), 'bottom-right');
+        map.addControl(new ThreeD(), '');
 
         class RotateControl {
             onAdd(map) {
@@ -650,7 +651,7 @@ body {
             }
         }
 
-        map.addControl(new RotateControl(), 'bottom-right');
+        map.addControl(new RotateControl(), '');
 
         updateFolder();
         updateVisualization();
